@@ -1,4 +1,4 @@
-FROM maven
+FROM arm64v8/maven
 RUN mkdir /app
 WORKDIR /app
 COPY . /app
