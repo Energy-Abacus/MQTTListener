@@ -8,10 +8,10 @@ public class App {
 
     public static void main (String[] args) {
         String publisherId = UUID.randomUUID().toString();
-        String ip = System.getenv("BROKER_HOST");
-        String port = System.getenv("BROKER_PORT");
-        String username = System.getenv("BROKER_USER");
-        String password = System.getenv("BROKER_PASSWORD");
+        String ip = System.getenv("mosquitto_ip");
+        String port = System.getenv("mosquitto_port");
+        String username = System.getenv("mosquitto_user_local");
+        String password = System.getenv("mosquitto_passwd_local");
         String deviceName;
         String deviceId;
         String topic = "shellies/announce";
