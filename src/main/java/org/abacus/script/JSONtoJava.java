@@ -17,7 +17,7 @@ public class JSONtoJava {
         JSONParser parser = new JSONParser();
         try {
             Object object;
-            object = parser.parse(new FileReader("C:\\4BHIF\\SYP\\SubscribeScript\\src\\main\\java\\org\\abacus\\script\\Subscriptions.json"));
+            object = parser.parse(new FileReader("src/main/java/org/abacus/script/Subscriptions.json"));
             JSONObject obj = (JSONObject)object;
             JSONObject data = (JSONObject)obj.get("data");
             JSONArray devices = (JSONArray)data.get("devices");
