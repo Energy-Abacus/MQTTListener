@@ -52,7 +52,7 @@ public class App {
                     for (String item: subs) {
                         System.out.println(item);
                         subsWithId.add(item.replace("{id}",deviceId));
-                        subWithId(subsWithId, client);
+                        subWithId(item.replace("{id}",deviceId), client);
                     }
 
                 }
@@ -73,9 +73,7 @@ public class App {
 
     }
 
-    static void subWithId(List<String> topics, IMqttClient client) throws MqttException {
-        for (String item: topics) {
-            client.subscribe(item,1);
-        }
+    static void subWithId(String topic, IMqttClient client) throws MqttException {
+        client.subscribe(topic,1);
     }
 }
