@@ -21,7 +21,7 @@ public class App {
         List<String> subs = classObject.getSubscriptions();
         List<String> subsWithId = new ArrayList<>();
         boolean subscribed = false;
-        int qos = 0;
+        int qos = 1;
         IMqttClient client;
 
 
@@ -50,6 +50,7 @@ public class App {
                     }
 
                     for (String item: subs) {
+                        System.out.println(item);
                         subsWithId.add(item.replace("{id}",deviceId));
                         subWithId(subsWithId, client);
                     }
@@ -74,8 +75,7 @@ public class App {
 
     static void subWithId(List<String> topics, IMqttClient client) throws MqttException {
         for (String item: topics) {
-            System.out.println(item);
-            client.subscribe(item,0);
+            client.subscribe(item,1);
         }
     }
 }
