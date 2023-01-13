@@ -47,14 +47,13 @@ public class App {
                     if(new String(message.getPayload()).startsWith("{")) {
                         deviceId = classObject.getDeviceId(new String(message.getPayload()));
                         System.out.println(deviceId);
-                    }
 
-                    for (String item: subs) {
-                        System.out.println(item);
-                        subsWithId.add(item.replace("{id}",deviceId));
-                        subWithId(item.replace("{id}",deviceId), client);
+                        for (String item: subs) {
+                            System.out.println(item);
+                            subsWithId.add(item.replace("{id}",deviceId));
+                            subWithId(item.replace("{id}",deviceId), client);
+                        }
                     }
-
                 }
 
                 public void deliveryComplete(IMqttDeliveryToken token) {
