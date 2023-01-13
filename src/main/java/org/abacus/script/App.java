@@ -37,17 +37,18 @@ public class App {
                     System.out.println("connectionLost: " + cause.getMessage());
                 }
 
-                public void messageArrived(String topic, MqttMessage message) {
+                public void messageArrived(String topic, MqttMessage message) throws MqttException {
                     System.out.println("topic: " + topic);
                     System.out.println("Qos: " + message.getQos());
                     System.out.println("message content: " + new String(message.getPayload()));
 
                     String deviceId = classObject.getDeviceId(new String(message.getPayload()));
 
-                    if(!subscribed){
-                        for (String item: subs) {
-                            subsWithId.add(item.replace("{id}",deviceId));
-                        }
+                    System.out.println(deviceId);
+
+                    for (String item: subs) {
+                        subsWithId.add(item.replace("{id}",deviceId));
+                        subWithId(subsWithId, client);
                     }
 
                 }
@@ -61,15 +62,17 @@ public class App {
             client.connect(options);
             client.subscribe(topic,qos);
 
-            for (String item: subsWithId) {
-                System.out.println(item);
-                client.subscribe(item,qos);
-            }
-
         } catch (MqttException e) {
             System.out.println("Couldnt connect to broker because of: " + e.getMessage());
         }
 
 
+    }
+
+    static void subWithId(List<String> topics, IMqttClient client) throws MqttException {
+        for (String item: topics) {
+            System.out.println(item);
+            client.subscribe(item,0);
+        }
     }
 }
