@@ -42,9 +42,12 @@ public class App {
                     System.out.println("Qos: " + message.getQos());
                     System.out.println("message content: " + new String(message.getPayload()));
 
-                    String deviceId = classObject.getDeviceId(new String(message.getPayload()));
+                    String deviceId = "";
 
-                    System.out.println(deviceId);
+                    if(new String(message.getPayload()).startsWith("{")) {
+                        deviceId = classObject.getDeviceId(new String(message.getPayload()));
+                        System.out.println(deviceId);
+                    }
 
                     for (String item: subs) {
                         subsWithId.add(item.replace("{id}",deviceId));
