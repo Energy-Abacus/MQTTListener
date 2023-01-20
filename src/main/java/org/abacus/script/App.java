@@ -3,6 +3,8 @@ package org.abacus.script;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.*;
+import org.keycloak.authorization.client.AuthzClient;
+import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -103,6 +105,8 @@ public class App {
     }
 
     static void postToServer(Map<String,String> data) throws IOException, InterruptedException {
+        KeycloakToken token = new KeycloakToken();
+        data.put("AuthToken",token.getRpt());
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
 
