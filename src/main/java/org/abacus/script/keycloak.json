@@ -1,0 +1,8 @@
+{
+  "realm": "hello-world-authz (NAME OF REALM INSERT)",
+  "auth-server-url" : "https://student.cloud.htl-leonding.ac.at/a.bello/keycloak/",
+  "resource" : "hello-world-authz-service (NAME OF SERVICE INSERT)",
+  "credentials": {
+    "secret": "secret"
+  }
+}
