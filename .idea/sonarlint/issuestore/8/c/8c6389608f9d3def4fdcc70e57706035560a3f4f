@@ -1,0 +1,17 @@
+
+^
+java:S2095%"HUse try-with-resources or close this "MqttClient" in a "finally" clause.(¶íË×
+h
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 24 to the 15 allowed.(Çµí‘
+J
+java:S1481"/Remove this unused "deviceName" local variable.(…îÊÜşÿÿÿÿ
+H
+java:S1481"-Remove this unused "deviceId" local variable.(»Ô‚³øÿÿÿÿ
+N	java:S106-"9Replace this use of System.out or System.err by a logger.(Üç¡
+S	java:S1061"9Replace this use of System.out or System.err by a logger.(íè‚‡ùÿÿÿÿ
+S	java:S1062"9Replace this use of System.out or System.err by a logger.(Ğ°ÿÔşÿÿÿÿ
+S	java:S1063"9Replace this use of System.out or System.err by a logger.(“Ÿ†¢ûÿÿÿÿ
+S	java:S106X"9Replace this use of System.out or System.err by a logger.(óîŸ úÿÿÿÿ
+S	java:S106a"9Replace this use of System.out or System.err by a logger.(ùÚÚ’üÿÿÿÿ
+S	java:S106q"9Replace this use of System.out or System.err by a logger.(÷œèàşÿÿÿÿ
+S	java:S106|"9Replace this use of System.out or System.err by a logger.(€¢£Áÿÿÿÿÿ

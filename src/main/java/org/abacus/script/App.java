@@ -105,8 +105,6 @@ public class App {
     }
 
     static void postToServer(Map<String,String> data) throws IOException, InterruptedException {
-        KeycloakToken token = new KeycloakToken();
-        data.put("AuthToken",token.getRpt());
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
 
