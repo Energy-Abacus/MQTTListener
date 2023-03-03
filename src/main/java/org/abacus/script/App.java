@@ -1,21 +1,21 @@
 package org.abacus.script;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.*;
-import org.keycloak.authorization.client.AuthzClient;
-import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class App {
 
-    public static void main (String[] args) {
+    public static void main (String[] args) throws IOException, InterruptedException {
         String publisherId = UUID.randomUUID().toString();
         String ip = System.getenv("mosquitto_ip");
         String port = System.getenv("mosquitto_port");
@@ -24,6 +24,7 @@ public class App {
         String deviceName;
         String deviceId;
         JSONtoJava classObject = new JSONtoJava();
+        Auth0Token auth0Token = new Auth0Token();
         String topic = classObject.getIdAsString();
         Map<String,String> subs = classObject.getSubscriptions();
         Map<String,String> data = new HashMap<>();
@@ -46,9 +47,6 @@ public class App {
                 }
 
                 public void messageArrived(String topic, MqttMessage message) throws MqttException, IOException, InterruptedException {
-                    System.out.println("topic: " + topic);
-                    System.out.println("Qos: " + message.getQos());
-                    System.out.println("message content: " + new String(message.getPayload()));
 
                     String deviceId;
 
@@ -105,6 +103,9 @@ public class App {
     }
 
     static void postToServer(Map<String,String> data) throws IOException, InterruptedException {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        data.put("timestamp",dateFormat.format(date));
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
 
