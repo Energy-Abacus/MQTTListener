@@ -3,8 +3,9 @@
     "devices": [
       {
         "id": "shellies/announce",
+        "idRegex": "",
         "interfaces": {
-          "status": "shellies/{id}/relay/0",
+          "powerOn": "shellies/{id}/relay/0",
           "wattPower": "shellies/{id}/relay/0/power",
           "wattMinutePower": "shellies/{id}/relay/0/energy",
           "temperature": "shellies/{id}/temperature"
