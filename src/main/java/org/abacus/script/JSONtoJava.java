@@ -27,7 +27,7 @@ public class JSONtoJava {
             id = (String)idObject.get("id");
             JSONObject interfaces = (JSONObject)idObject.get("interfaces");
 
-            subs.put("status",(String)interfaces.get("status"));
+            subs.put("powerOn",(String) interfaces.get("powerOn"));
             subs.put("wattPower",(String)interfaces.get("wattPower"));
             subs.put("wattMinutePower",(String)interfaces.get("wattMinutePower"));
             subs.put("temperature",(String)interfaces.get("temperature"));

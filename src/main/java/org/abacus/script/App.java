@@ -10,21 +10,19 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class App {
 
+    public String dvId;
+
     public static void main (String[] args) throws IOException, InterruptedException {
-        String publisherId = UUID.randomUUID().toString();
-        String ip = System.getenv("mosquitto_ip");
-        String port = System.getenv("mosquitto_port");
-        String username = System.getenv("mosquitto_user_local");
-        String password = System.getenv("mosquitto_passwd_local");
-        String deviceName;
-        String deviceId;
+        final String publisherId = UUID.randomUUID().toString();
+        final String ip = System.getenv("mosquitto_ip");
+        final String port = System.getenv("mosquitto_port");
+        final String username = System.getenv("mosquitto_user_local");
+        final String password = System.getenv("mosquitto_passwd_local");
         JSONtoJava classObject = new JSONtoJava();
-        Auth0Token auth0Token = new Auth0Token();
         String topic = classObject.getIdAsString();
         Map<String,String> subs = classObject.getSubscriptions();
         Map<String,String> data = new HashMap<>();
@@ -53,6 +51,7 @@ public class App {
                     if(new String(message.getPayload()).startsWith("{")) {
                         deviceId = classObject.getDeviceId(new String(message.getPayload()));
                         classObject.deviceId = deviceId;
+
                         for (Map.Entry<String,String> item : subs.entrySet()) {
                             subWithId(item.getValue().replace("{id}",deviceId), client);
                         }
@@ -74,6 +73,8 @@ public class App {
                         }
 
                         if(temp.size() == 4) {
+                            String dId = classObject.deviceId;
+                            temp.put("outletIdentifier",dId);
                             postToServer(temp);
                             data.clear();
                             temp.clear();
@@ -104,8 +105,10 @@ public class App {
 
     static void postToServer(Map<String,String> data) throws IOException, InterruptedException {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Auth0Token auth0Token = new Auth0Token();
         Date date = new Date();
-        data.put("timestamp",dateFormat.format(date));
+        data.put("timeStamp",dateFormat.format(date));
+        data.put("postToken",auth0Token.getToken());
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
 
@@ -113,13 +116,15 @@ public class App {
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus-backend/api/v1/Measurements"))
+                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/eligst-add-token-outlet/api/v1/measurements"))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
         HttpResponse<String> response = client.send(request,
                 HttpResponse.BodyHandlers.ofString());
 
-        System.out.println(response.body());
+        System.out.println(response.headers());
+        System.out.println(response.statusCode());
     }
+
 }
