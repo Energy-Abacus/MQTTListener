@@ -28,12 +28,9 @@ public class App {
         Map<String,String> data = new HashMap<>();
         Map<String,String> temp = new HashMap<>();
         int qos = 1;
-        IMqttClient client;
         /*https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus-backend/api/v1/Measurements*/
 
-
-        try {
-            client = new MqttClient("tcp://" + ip + ":" + port,publisherId);
+        try (IMqttClient client = new MqttClient("tcp://"+ip+":"+port, publisherId)) {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setUserName(username);
             options.setPassword(password.toCharArray());
