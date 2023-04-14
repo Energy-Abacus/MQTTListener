@@ -69,7 +69,7 @@ public class App {
                             }
                         }
 
-                        if(temp.size() == 4) {
+                        if(temp.size() == subs.size()) {
                             String dId = classObject.deviceId;
                             temp.put("outletIdentifier",dId);
                             postToServer(temp);
@@ -113,7 +113,7 @@ public class App {
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/eligst-add-token-outlet/api/v1/measurements"))
+                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/elig-add-total-watt-consumption/api/v1/measurements"))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 

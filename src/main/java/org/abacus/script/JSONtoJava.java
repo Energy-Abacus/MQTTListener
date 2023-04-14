@@ -29,7 +29,6 @@ public class JSONtoJava {
 
             subs.put("powerOn",(String) interfaces.get("powerOn"));
             subs.put("wattPower",(String)interfaces.get("wattPower"));
-            subs.put("wattMinutePower",(String)interfaces.get("wattMinutePower"));
             subs.put("temperature",(String)interfaces.get("temperature"));
         } catch (IOException | ParseException e) {
             e.printStackTrace();

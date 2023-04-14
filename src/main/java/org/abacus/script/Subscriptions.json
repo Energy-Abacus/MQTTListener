@@ -7,7 +7,6 @@
         "interfaces": {
           "powerOn": "shellies/{id}/relay/0",
           "wattPower": "shellies/{id}/relay/0/power",
-          "wattMinutePower": "shellies/{id}/relay/0/energy",
           "temperature": "shellies/{id}/temperature"
         }
       }
