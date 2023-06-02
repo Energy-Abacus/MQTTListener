@@ -26,10 +26,10 @@ public class JSONtoJava {
             JSONObject idObject = (JSONObject)devices.get(0);
             id = (String)idObject.get("id");
             JSONObject interfaces = (JSONObject)idObject.get("interfaces");
-
             subs.put("powerOn",(String) interfaces.get("powerOn"));
             subs.put("wattPower",(String)interfaces.get("wattPower"));
             subs.put("temperature",(String)interfaces.get("temperature"));
+            subs.put("totalPowerUsed",(String)interfaces.get("energy"));
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }

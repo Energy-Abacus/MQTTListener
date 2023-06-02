@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 
 public class App {
@@ -39,19 +40,44 @@ public class App {
 
                 public void connectionLost(Throwable cause) {
                     System.out.println("connectionLost: " + cause.getMessage());
+                    cause.printStackTrace();
                 }
 
                 public void messageArrived(String topic, MqttMessage message) throws MqttException, IOException, InterruptedException {
 
                     String deviceId;
+                    double totalPowerUsed = 0;
 
-                    if(new String(message.getPayload()).startsWith("{")) {
+                    if(topic.contains("/announce")){
+
                         deviceId = classObject.getDeviceId(new String(message.getPayload()));
                         classObject.deviceId = deviceId;
 
                         for (Map.Entry<String,String> item : subs.entrySet()) {
                             subWithId(item.getValue().replace("{id}",deviceId), client);
                         }
+
+                        Auth0Token auth0Token = new Auth0Token();
+                        HttpClient client = HttpClient.newHttpClient();
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        Map<String,String> body = new HashMap<>();
+                        body.put("postToken", auth0Token.getToken());
+                        body.put("outletIdentifier", classObject.deviceId);
+                        String requestBody = objectMapper.writeValueAsString(body);
+                        System.out.println(requestBody);
+
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/elig-update-totalpower/api/v1/measurement/total"))
+                                .method("GET", HttpRequest.BodyPublishers.ofString(requestBody))
+                                .setHeader("User-Agent", "Java 11 HttpClient Bot")
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                        System.out.println(response.statusCode());
+                        System.out.println(response.body());
+                        totalPowerUsed = Double.parseDouble(response.body());
+
                     }
                     else{
                         String strTopic = "";
@@ -63,10 +89,24 @@ public class App {
 
                         data.put(strTopic,new String(message.getPayload()));
 
+                        String key = "";
+                        String value = "";
+
                         for (Map.Entry<String,String> item: data.entrySet()) {
                             if(data.containsKey(item.getKey())){
                                 temp.put(item.getKey(),item.getValue());
+                                if(item.getKey() == "totalPowerUsed"){
+                                    Double result = totalPowerUsed + Double.parseDouble(item.getValue());
+                                    key = item.getKey();
+                                    value = String.valueOf(result);
+                                }
                             }
+                        }
+
+                        if(value != "") {
+                            data.replace(key, value);
+                            key = "";
+                            value = "";
                         }
 
                         if(temp.size() == subs.size()) {
@@ -101,10 +141,8 @@ public class App {
     }
 
     static void postToServer(Map<String,String> data) throws IOException, InterruptedException {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Auth0Token auth0Token = new Auth0Token();
-        Date date = new Date();
-        data.put("timeStamp",dateFormat.format(date));
+        data.put("timeStamp", String.valueOf(Instant.now().getEpochSecond()));
         data.put("postToken",auth0Token.getToken());
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
@@ -113,7 +151,7 @@ public class App {
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/elig-add-total-watt-consumption/api/v1/measurements"))
+                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/elig-update-totalpower/api/v1/measurement"))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
@@ -121,8 +159,6 @@ public class App {
                 HttpResponse.BodyHandlers.ofString());
 
         System.out.println(response.body());
-        System.out.println(response.headers());
-        System.out.println(response.statusCode());
     }
 
 }
