@@ -62,12 +62,12 @@ public class App {
                         ObjectMapper objectMapper = new ObjectMapper();
                         Map<String,String> body = new HashMap<>();
                         body.put("postToken", auth0Token.getToken());
-                        body.put("outletIdentifier", classObject.deviceId);
+                        body.put("outletIdentifier", classObject.deviceId + "dev2"); //testing
                         String requestBody = objectMapper.writeValueAsString(body);
                         System.out.println(requestBody);
 
                         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/elig-update-totalpower/api/v1/measurement/total"))
+                                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/main/api/v1/measurement/total"))
                                 .method("GET", HttpRequest.BodyPublishers.ofString(requestBody))
                                 .setHeader("User-Agent", "Java 11 HttpClient Bot")
                                 .build();
@@ -144,6 +144,8 @@ public class App {
         Auth0Token auth0Token = new Auth0Token();
         data.put("timeStamp", String.valueOf(Instant.now().getEpochSecond()));
         data.put("postToken",auth0Token.getToken());
+
+        data.replace("outletIdentifier","shellyplug-s-4022D88973C1dev2"); //testing
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
 
@@ -151,7 +153,7 @@ public class App {
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/elig-update-totalpower/api/v1/measurement"))
+                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/main/api/v1/measurement"))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
