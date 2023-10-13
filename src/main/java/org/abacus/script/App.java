@@ -17,7 +17,7 @@ public class App {
 
     public String dvId;
 
-    public static void main (String[] args) throws IOException, InterruptedException {
+    public static void main (String[] args) {
         final String publisherId = UUID.randomUUID().toString();
         final String ip = System.getenv("mosquitto_ip");
         final String port = System.getenv("mosquitto_port");
@@ -29,7 +29,6 @@ public class App {
         Map<String,String> data = new HashMap<>();
         Map<String,String> temp = new HashMap<>();
         int qos = 1;
-        /*https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus-backend/api/v1/Measurements*/
 
         try (IMqttClient client = new MqttClient("tcp://"+ip+":"+port, publisherId)) {
             MqttConnectOptions options = new MqttConnectOptions();
@@ -62,12 +61,12 @@ public class App {
                         ObjectMapper objectMapper = new ObjectMapper();
                         Map<String,String> body = new HashMap<>();
                         body.put("postToken", auth0Token.getToken());
-                        body.put("outletIdentifier", classObject.deviceId + "dev2"); //testing
+                        body.put("outletIdentifier", classObject.deviceId); //testing
                         String requestBody = objectMapper.writeValueAsString(body);
                         System.out.println(requestBody);
 
                         HttpRequest request = HttpRequest.newBuilder()
-                                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/main/api/v1/measurement/total"))
+                                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/main/api/v1/measurement/total-power-plug"))
                                 .method("GET", HttpRequest.BodyPublishers.ofString(requestBody))
                                 .setHeader("User-Agent", "Java 11 HttpClient Bot")
                                 .build();
@@ -145,7 +144,6 @@ public class App {
         data.put("timeStamp", String.valueOf(Instant.now().getEpochSecond()));
         data.put("postToken",auth0Token.getToken());
 
-        data.replace("outletIdentifier","shellyplug-s-4022D88973C1dev2"); //testing
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(data);
 
