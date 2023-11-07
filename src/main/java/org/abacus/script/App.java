@@ -13,9 +13,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 
-public class App {
-
-    public String dvId;
+public class App { //TODO Implement multi plugs functionality
 
     public static void main (String[] args) {
         final String publisherId = UUID.randomUUID().toString();
@@ -23,15 +21,17 @@ public class App {
         final String port = System.getenv("mosquitto_port");
         final String username = System.getenv("mosquitto_user_local");
         final String password = System.getenv("mosquitto_passwd_local");
+        JSONtoJava cO = new JSONtoJava();
         JSONtoJava classObject = new JSONtoJava();
-        String topic = classObject.getIdAsString();
         Map<String,String> subs = classObject.getSubscriptions();
         Map<String,String> data = new HashMap<>();
         Map<String,String> temp = new HashMap<>();
         int qos = 1;
+        String topic = cO.getIdAsString();
 
         try (IMqttClient client = new MqttClient("tcp://"+ip+":"+port, publisherId)) {
             MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(false);
             options.setUserName(username);
             options.setPassword(password.toCharArray());
 
@@ -43,6 +43,7 @@ public class App {
                 }
 
                 public void messageArrived(String topic, MqttMessage message) throws MqttException, IOException, InterruptedException {
+
 
                     String deviceId;
                     double totalPowerUsed = 0;
