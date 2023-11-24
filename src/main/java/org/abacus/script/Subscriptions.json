@@ -4,6 +4,7 @@
       {
         "id": "shellies/announce",
         "idRegex": "",
+        "topicSeparator": "/",
         "interfaces": {
           "powerOn": "shellies/{id}/relay/0",
           "wattPower": "shellies/{id}/relay/0/power",
