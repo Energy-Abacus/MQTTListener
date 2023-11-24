@@ -2,35 +2,31 @@ package org.abacus.script;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.*;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class App {
 
     public String dvId;
 
-    public static void main (String[] args) throws IOException, InterruptedException {
+    public static void main (String[] args) {
         final String publisherId = UUID.randomUUID().toString();
         final String ip = System.getenv("mosquitto_ip");
         final String port = System.getenv("mosquitto_port");
         final String username = System.getenv("mosquitto_user_local");
         final String password = System.getenv("mosquitto_passwd_local");
-        JSONtoJava classObject = new JSONtoJava();
-        String topic = classObject.getIdAsString();
-        Map<String,String> subs = classObject.getSubscriptions();
-        Map<String,String> data = new HashMap<>();
-        Map<String,String> temp = new HashMap<>();
-        int qos = 1;
-        /*https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus-backend/api/v1/Measurements*/
 
-        try (IMqttClient client = new MqttClient("tcp://"+ip+":"+port, publisherId)) {
+        List<PlugData> plugDataList = new ArrayList<>();
+
+        try (IMqttAsyncClient client = new MqttAsyncClient("tcp://"+ip+":"+port, publisherId)) {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setUserName(username);
             options.setPassword(password.toCharArray());
@@ -39,45 +35,39 @@ public class App {
 
                 public void connectionLost(Throwable cause) {
                     System.out.println("connectionLost: " + cause.getMessage());
+                    cause.printStackTrace();
                 }
 
-                public void messageArrived(String topic, MqttMessage message) throws MqttException, IOException, InterruptedException {
+                public void messageArrived(String topic, MqttMessage message) {
 
-                    String deviceId;
+                    final PlugData plugData = plugDataList.stream()
+                            .filter(p -> p.getSubs().containsKey(topic))
+                            .findFirst()
+                            .orElse(null);
 
-                    if(new String(message.getPayload()).startsWith("{")) {
-                        deviceId = classObject.getDeviceId(new String(message.getPayload()));
-                        classObject.deviceId = deviceId;
-
-                        for (Map.Entry<String,String> item : subs.entrySet()) {
-                            subWithId(item.getValue().replace("{id}",deviceId), client);
-                        }
-                    }
-                    else{
-                        String strTopic = "";
-                        for (Map.Entry<String,String> item: subs.entrySet()) {
-                            if(item.getValue().replace("{id}",classObject.deviceId).equals(topic)){
-                                strTopic = item.getKey();
-                            }
-                        }
-
-                        data.put(strTopic,new String(message.getPayload()));
-
-                        for (Map.Entry<String,String> item: data.entrySet()) {
-                            if(data.containsKey(item.getKey())){
-                                temp.put(item.getKey(),item.getValue());
-                            }
-                        }
-
-                        if(temp.size() == 4) {
-                            String dId = classObject.deviceId;
-                            temp.put("outletIdentifier",dId);
-                            postToServer(temp);
-                            data.clear();
-                            temp.clear();
-                        }
+                    if (plugData == null) {
+                        System.out.println("No plug found for topic: " + topic);
+                        return;
                     }
 
+                    final Topic topicObj = plugData.getSubs().get(topic);
+                    final String payload = new String(message.getPayload());
+
+                    switch (topicObj.getName()) {
+                        case "wattPower" -> plugData.setWattPower(Double.parseDouble(payload));
+                        case "temperature" -> plugData.setTemperature(Double.parseDouble(payload));
+                        case "energy" -> plugData.setTotalPowerUsed(Double.parseDouble(payload));
+                    }
+
+                    try {
+                        plugData.postAndClearIfReady();
+                    } catch (IOException e) {
+                        System.out.println("Error while posting data: " + e.getMessage());
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Thread.currentThread().interrupt();
+                    }
                 }
 
                 public void deliveryComplete(IMqttDeliveryToken token) {
@@ -86,42 +76,37 @@ public class App {
 
             });
 
-            client.connect(options);
-            client.subscribe(topic,qos);
+            IMqttToken token = client.connect(options);
+            token.waitForCompletion();
 
+            HttpClient httpClient = HttpClient.newHttpClient();
+            Auth0Token authToken = new Auth0Token();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/main/api/v1/outlet/by-hub?postToken=" + authToken.getToken()))
+                    .method("GET", HttpRequest.BodyPublishers.noBody())
+                    .setHeader("User-Agent", "Java 11 HttpClient Bot")
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            JSONArray jsonArray = (JSONArray)(new JSONParser()).parse(response.body());
+
+            for (Object id : jsonArray) {
+                PlugData plugData = new PlugData((String)id);
+                plugDataList.add(plugData);
+                for (Topic topic : plugData.getSubs().values()) {
+                    subWithId(topic.getTopic(), client);
+                }
+            }
         } catch (MqttException e) {
             System.out.println("Couldnt connect to broker because of: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException | InterruptedException | ParseException e) {
+            System.out.println("Couldnt get plugs from api because: " + e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
         }
-
-
     }
 
-    static void subWithId(String topic, IMqttClient client) throws MqttException {
+    static void subWithId(String topic, IMqttAsyncClient client) throws MqttException {
         client.subscribe(topic,1);
     }
-
-    static void postToServer(Map<String,String> data) throws IOException, InterruptedException {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Auth0Token auth0Token = new Auth0Token();
-        Date date = new Date();
-        data.put("timeStamp",dateFormat.format(date));
-        data.put("postToken",auth0Token.getToken());
-        ObjectMapper objectMapper = new ObjectMapper();
-        String requestBody = objectMapper.writeValueAsString(data);
-
-        System.out.println(requestBody);
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://student.cloud.htl-leonding.ac.at/e.gstallnig/abacus/eligst-add-token-outlet/api/v1/measurements"))
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
-
-        HttpResponse<String> response = client.send(request,
-                HttpResponse.BodyHandlers.ofString());
-
-        System.out.println(response.headers());
-        System.out.println(response.statusCode());
-    }
-
 }
